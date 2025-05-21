@@ -10,15 +10,36 @@
         Title="Книга рецептов">
 
     <Design.DataContext>
-        <!-- This only sets the DataContext for the previewer in an IDE,
-             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
         <vm:MainWindowViewModel/>
     </Design.DataContext>
 
-    <Grid>
-        <!-- Список рецептов и кнопки -->
-        <StackPanel Margin="20" Spacing="10">
-            <ListBox ItemsSource="{Binding Recipes}" SelectedItem="{Binding SelectedRecipe}" Height="200">
+   <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="240"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Боковая панель поиска и фильтрации -->
+        <StackPanel Grid.Column="0" Margin="14" Spacing="12">
+            <TextBlock Text="Поиск по названию:"/>
+            <TextBox Text="{Binding SearchTitle, Mode=TwoWay}"/>
+
+            <TextBlock Text="Поиск по ингредиенту:"/>
+            <TextBox Text="{Binding SearchIngredient, Mode=TwoWay}"/>
+
+            <TextBlock Text="Фильтр по категории:"/>
+            <TextBox Text="{Binding FilterCategory, Mode=TwoWay}"/>
+
+            <TextBlock Text="Фильтр по ингредиенту:"/>
+            <TextBox Text="{Binding FilterIngredient, Mode=TwoWay}"/>
+        </StackPanel>
+
+        <!-- Главная область -->
+        <StackPanel Grid.Column="1" Margin="14" Spacing="10">
+            <ListBox ItemsSource="{Binding FilteredRecipes}"
+                     SelectedItem="{Binding SelectedRecipe}"
+                     Height="200"
+                     DoubleTapped="ListBox_OnDoubleTapped">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <StackPanel>
@@ -29,52 +50,58 @@
                 </ListBox.ItemTemplate>
             </ListBox>
 
-            <StackPanel Orientation="Horizontal" Spacing="10">
+            <StackPanel Orientation="Horizontal" Spacing="8">
                 <Button Content="Добавить рецепт" Command="{Binding AddRecipeCommand}"/>
                 <Button Content="Редактировать" Command="{Binding EditRecipeCommand}"/>
                 <Button Content="Удалить" Command="{Binding DeleteRecipeCommand}"/>
-
             </StackPanel>
 
-            <Border Margin="0,10,0,0" BorderBrush="Gray" BorderThickness="1" Padding="10" CornerRadius="6">
+            <!-- Бордер с полным описанием рецепта -->
+            <!--<Border Margin="0,10,0,0" BorderBrush="Gray" BorderThickness="1" Padding="10" CornerRadius="6">
                 <StackPanel>
                     <TextBlock Text="Название:" FontWeight="Bold"/>
                     <TextBlock Text="{Binding SelectedRecipe.Title}"/>
-                    
-                    <TextBlock Text="Ингредиенты:" FontWeight="Bold"/>
+                    <TextBlock Text="Ингредиенты:" FontWeight="Bold" Margin="0,6,0,0"/>
                     <ItemsControl ItemsSource="{Binding SelectedRecipe.Ingredients}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <TextBlock>
-                                    <TextBlock.Text>
-                                        <MultiBinding StringFormat="{}{0} — {1} {2}">
-                                            <Binding Path="Name"/>
-                                            <Binding Path="Quantity"/>
-                                            <Binding Path="Unit"/>
-                                        </MultiBinding>
-                                    </TextBlock.Text>
-                                </TextBlock>
+                                <StackPanel Orientation="Horizontal" Spacing="2">
+                                    <TextBlock Text="{Binding Name}"/>
+                                    <TextBlock Text=" — "/>
+                                    <TextBlock Text="{Binding Quantity}"/>
+                                    <TextBlock Text=" "/>
+                                    <TextBlock Text="{Binding Unit}"/>
+                                </StackPanel>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
-
-                    <TextBlock Text="Описание:" FontWeight="Bold"/>
+                    <TextBlock Text="Описание:" FontWeight="Bold" Margin="0,6,0,0"/>
                     <TextBlock Text="{Binding SelectedRecipe.Instructions}"/>
-                    <TextBlock Text="Категория:" FontWeight="Bold"/>
+                    <TextBlock Text="Категория:" FontWeight="Bold" Margin="0,6,0,0"/>
                     <TextBlock Text="{Binding SelectedRecipe.Category}"/>
                 </StackPanel>
-            </Border>
+            </Border> -->
         </StackPanel>
 
-        <!-- Модальное окно для редактирования/добавления -->
-        <Border IsVisible="{Binding IsEditDialogOpen}" Background="#CCFFFFFF" Grid.RowSpan="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="99">
-            <Border Width="400" Height="400" Background="White" CornerRadius="10" Padding="20" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <!-- Модальное окно для добавления/редактирования -->
+        <Border Grid.ColumnSpan="2"
+                IsVisible="{Binding IsEditDialogOpen}"
+                Background="#80000080"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch"
+                ZIndex="99">
+            <Border Width="400"
+                    Background="White"
+                    CornerRadius="10"
+                    Padding="20"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
                 <StackPanel>
                     <TextBlock Text="Рецепт" FontWeight="Bold" FontSize="18" Margin="0,0,0,10"/>
                     <TextBox Watermark="Название" Text="{Binding EditViewModel.Title, Mode=TwoWay}" Margin="0,2"/>
                     <TextBox Watermark="Категория" Text="{Binding EditViewModel.Category, Mode=TwoWay}" Margin="0,2"/>
                     <TextBox Watermark="Инструкции" Text="{Binding EditViewModel.Instructions, Mode=TwoWay}" AcceptsReturn="True" Height="60" Margin="0,2"/>
-                    
+
                     <TextBlock Text="Ингредиенты:" FontWeight="SemiBold" Margin="0,10,0,0"/>
                     <ItemsControl ItemsSource="{Binding EditViewModel.Ingredients}">
                         <ItemsControl.ItemTemplate>
@@ -89,11 +116,54 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                     <Button Content="Добавить ингредиент" Command="{Binding EditViewModel.AddIngredientCommand}" Margin="0,4"/>
-                    
+
                     <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,10,0,0">
                         <Button Content="Сохранить" Command="{Binding SaveRecipeCommand}"/>
                         <Button Content="Отмена" Command="{Binding CancelEditCommand}"/>
                     </StackPanel>
+                </StackPanel>
+            </Border>
+        </Border>
+
+        <!-- Модальное окно просмотра рецепта -->
+        <Border Grid.ColumnSpan="2"
+                IsVisible="{Binding IsViewDialogOpen}"
+                Background="#80000080"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch"
+                ZIndex="98">
+            <Border Width="400"
+                    Background="White"
+                    CornerRadius="10"
+                    Padding="20"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
+                <StackPanel>
+                    <TextBlock Text="Рецепт" FontWeight="Bold" FontSize="18" Margin="0,0,0,10"/>
+                    <TextBlock Text="Название:" FontWeight="Bold"/>
+                    <TextBlock Text="{Binding ViewRecipe.Title}"/>
+                    <TextBlock Text="Категория:" FontWeight="Bold"/>
+                    <TextBlock Text="{Binding ViewRecipe.Category}"/>
+                    <TextBlock Text="Описание:" FontWeight="Bold" Margin="0,5,0,0"/>
+                    <TextBlock Text="{Binding ViewRecipe.Instructions}"/>
+                    <TextBlock Text="Ингредиенты:" FontWeight="Bold" Margin="0,5,0,0"/>
+                    <ItemsControl ItemsSource="{Binding ViewRecipe.Ingredients}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" Spacing="2">
+                                    <TextBlock Text="{Binding Name}"/>
+                                    <TextBlock Text=" — "/>
+                                    <TextBlock Text="{Binding Quantity}"/>
+                                    <TextBlock Text=" "/>
+                                    <TextBlock Text="{Binding Unit}"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <Button Content="Закрыть"
+                            Margin="0,10,0,0"
+                            HorizontalAlignment="Right"
+                            Command="{Binding CloseViewDialogCommand}"/>
                 </StackPanel>
             </Border>
         </Border>
