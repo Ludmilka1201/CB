@@ -19,8 +19,12 @@ namespace CB.ViewModels;
                 Ingredients = new ObservableCollection<IngredientViewModel>(
                     recipe.Ingredients.Select(i => new IngredientViewModel(i, RemoveIngredient)));
             }
+            else
+            {
+                Ingredients = new ObservableCollection<IngredientViewModel>();
+            }
+
             AddIngredientCommand = ReactiveCommand.Create(AddIngredient);
-            //RemoveIngredientCommand = ReactiveCommand.Create<Ingredient>(RemoveIngredient);
         }
 
         string _title = "";
@@ -32,10 +36,9 @@ namespace CB.ViewModels;
         string _instructions = "";
         public string Instructions { get => _instructions; set => this.RaiseAndSetIfChanged(ref _instructions, value); }
 
-        public ObservableCollection<IngredientViewModel> Ingredients { get; } = new();
+        public ObservableCollection<IngredientViewModel> Ingredients { get; }
 
         public ReactiveCommand<Unit, Unit> AddIngredientCommand { get; }
-        public ReactiveCommand<Ingredient, Unit> RemoveIngredientCommand { get; }
 
         private void AddIngredient()
         {
@@ -53,12 +56,8 @@ namespace CB.ViewModels;
                 Title = Title,
                 Category = Category,
                 Instructions = Instructions,
-                Ingredients = Ingredients.Select(i => new Ingredient
-                {
-                    Name = i.Name,
-                    Quantity = i.Quantity,
-                    Unit = i.Unit
-                }).ToList()
+                Ingredients = Ingredients.Select(i => i.Ingredient).ToList()
             };
         }
     }
+    

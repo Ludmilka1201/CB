@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using CB.Models;
 using DynamicData.Binding;
 
@@ -13,10 +14,10 @@ namespace CB.ViewModels;
 
 public class MainWindowViewModel : ViewModelBase
 {
-     // Основная коллекция рецептов
+       private readonly MongoRecipeService _dbService = new();
+
         public ObservableCollection<Recipe> Recipes { get; } = new();
 
-        // Поисковые и фильтрующие поля
         private string _searchTitle = "";
         public string SearchTitle
         {
@@ -45,7 +46,6 @@ public class MainWindowViewModel : ViewModelBase
             set => this.RaiseAndSetIfChanged(ref _filterIngredient, value);
         }
 
-        // выбранный рецепт
         private Recipe? _selectedRecipe;
         public Recipe? SelectedRecipe
         {
@@ -53,7 +53,6 @@ public class MainWindowViewModel : ViewModelBase
             set => this.RaiseAndSetIfChanged(ref _selectedRecipe, value);
         }
 
-        // Для редактирования/добавления
         private bool _isEditDialogOpen;
         public bool IsEditDialogOpen
         {
@@ -68,7 +67,6 @@ public class MainWindowViewModel : ViewModelBase
             set => this.RaiseAndSetIfChanged(ref _editViewModel, value);
         }
 
-        // Для просмотра
         private bool _isViewDialogOpen;
         public bool IsViewDialogOpen
         {
@@ -83,7 +81,6 @@ public class MainWindowViewModel : ViewModelBase
             set => this.RaiseAndSetIfChanged(ref _viewRecipe, value);
         }
 
-        // Команды
         public ReactiveCommand<Unit, Unit> AddRecipeCommand { get; }
         public ReactiveCommand<Unit, Unit> EditRecipeCommand { get; }
         public ReactiveCommand<Unit, Unit> DeleteRecipeCommand { get; }
@@ -92,42 +89,17 @@ public class MainWindowViewModel : ViewModelBase
         public ReactiveCommand<Recipe, Unit> ShowRecipeCommand { get; }
         public ReactiveCommand<Unit, Unit> CloseViewDialogCommand { get; }
 
-        // Реактивное вычисляемое свойство для фильтра
         private ObservableAsPropertyHelper<ReadOnlyObservableCollection<Recipe>>? _filteredRecipes;
         public ReadOnlyObservableCollection<Recipe> FilteredRecipes => _filteredRecipes?.Value ?? new(new ObservableCollection<Recipe>());
 
         public MainWindowViewModel()
         {
-            // Пример данных
-            Recipes.Add(new Recipe
-            {
-                Title = "Панкейки",
-                Ingredients = new() {
-                    new Ingredient { Name = "Мука", Quantity = 200, Unit = "г" },
-                    new Ingredient { Name = "Молоко", Quantity = 300, Unit = "мл" },
-                    new Ingredient { Name = "Яйцо", Quantity = 1, Unit = "шт" }
-                },
-                Instructions = "Смешайте всё и жарьте.",
-                Category = "Завтрак"
-            });
-            Recipes.Add(new Recipe
-            {
-                Title = "Омлет",
-                Ingredients = new() {
-                    new Ingredient { Name = "Яйцо", Quantity = 3, Unit = "шт" },
-                    new Ingredient { Name = "Молоко", Quantity = 50, Unit = "мл" }
-                },
-                Instructions = "Взбейте яйца с молоком и жарьте.",
-                Category = "Завтрак"
-            });
-
-            // Реактивная фильтрация
             this.WhenAnyValue(
                 x => x.SearchTitle,
                 x => x.SearchIngredient,
                 x => x.FilterCategory,
                 x => x.FilterIngredient)
-                .Throttle(TimeSpan.FromMilliseconds(100))
+                .Throttle(System.TimeSpan.FromMilliseconds(100))
                 .Select(_ => Unit.Default)
                 .Merge(Recipes.ToObservableChangeSet().Select(_ => Unit.Default))
                 .Select(_ => FilterCore())
@@ -136,22 +108,32 @@ public class MainWindowViewModel : ViewModelBase
             AddRecipeCommand = ReactiveCommand.Create(OnAddRecipe, this.WhenAnyValue(x => x.SelectedRecipe).Select(r => r == null));
             EditRecipeCommand = ReactiveCommand.Create(OnEditRecipe, this.WhenAnyValue(x => x.SelectedRecipe).Select(r => r != null));
             DeleteRecipeCommand = ReactiveCommand.Create(OnDeleteRecipe, this.WhenAnyValue(x => x.SelectedRecipe).Select(r => r != null));
-            SaveRecipeCommand = ReactiveCommand.Create(OnSaveRecipe);
+            SaveRecipeCommand = ReactiveCommand.CreateFromTask(OnSaveRecipeAsync);
             CancelEditCommand = ReactiveCommand.Create(OnCancelEdit);
             ShowRecipeCommand = ReactiveCommand.Create<Recipe>(OnShowRecipe);
             CloseViewDialogCommand = ReactiveCommand.Create(CloseViewDialog);
+
+            // Загрузка из базы автоматически при запуске
+            _ = LoadRecipesAsync();
         }
 
-        // Фильтрация логика
         private ReadOnlyObservableCollection<Recipe> FilterCore()
         {
             var filtered = Recipes.Where(r =>
-                (string.IsNullOrWhiteSpace(SearchTitle) || r.Title.Contains(SearchTitle, StringComparison.OrdinalIgnoreCase)) &&
-                (string.IsNullOrWhiteSpace(SearchIngredient) || r.Ingredients.Any(i => i.Name.Contains(SearchIngredient, StringComparison.OrdinalIgnoreCase))) &&
-                (string.IsNullOrWhiteSpace(FilterCategory) || r.Category.Contains(FilterCategory, StringComparison.OrdinalIgnoreCase)) &&
-                (string.IsNullOrWhiteSpace(FilterIngredient) || r.Ingredients.Any(i => i.Name.Contains(FilterIngredient, StringComparison.OrdinalIgnoreCase)))
+                (string.IsNullOrWhiteSpace(SearchTitle) || r.Title.Contains(SearchTitle, System.StringComparison.OrdinalIgnoreCase)) &&
+                (string.IsNullOrWhiteSpace(SearchIngredient) || r.Ingredients.Any(i => i.Name.Contains(SearchIngredient, System.StringComparison.OrdinalIgnoreCase))) &&
+                (string.IsNullOrWhiteSpace(FilterCategory) || r.Category.Contains(FilterCategory, System.StringComparison.OrdinalIgnoreCase)) &&
+                (string.IsNullOrWhiteSpace(FilterIngredient) || r.Ingredients.Any(i => i.Name.Contains(FilterIngredient, System.StringComparison.OrdinalIgnoreCase)))
             );
             return new ReadOnlyObservableCollection<Recipe>(new ObservableCollection<Recipe>(filtered));
+        }
+
+        public async Task LoadRecipesAsync()
+        {
+            var all = await _dbService.GetAllAsync();
+            Recipes.Clear();
+            foreach (var r in all)
+                Recipes.Add(r);
         }
 
         private void OnAddRecipe()
@@ -169,27 +151,23 @@ public class MainWindowViewModel : ViewModelBase
             }
         }
 
-        private void OnDeleteRecipe()
-        {
-            if (SelectedRecipe != null)
-            {
-                Recipes.Remove(SelectedRecipe);
-                SelectedRecipe = null;
-            }
-        }
-
-        private void OnSaveRecipe()
+        private async Task OnSaveRecipeAsync()
         {
             if (EditViewModel != null)
             {
                 var newRecipe = EditViewModel.ToRecipe();
                 if (SelectedRecipe != null && Recipes.Contains(SelectedRecipe))
                 {
+                    newRecipe.Id = SelectedRecipe.Id;
+                    // Обновление в базе
+                    await _dbService.UpdateAsync(newRecipe.Id!, newRecipe);
+                    // Обновление в списке
                     int idx = Recipes.IndexOf(SelectedRecipe);
                     Recipes[idx] = newRecipe;
                 }
                 else
                 {
+                    await _dbService.AddAsync(newRecipe);
                     Recipes.Add(newRecipe);
                 }
                 SelectedRecipe = newRecipe;
@@ -202,6 +180,16 @@ public class MainWindowViewModel : ViewModelBase
             IsEditDialogOpen = false;
         }
 
+        private async void OnDeleteRecipe()
+        {
+            if (SelectedRecipe != null)
+            {
+                await _dbService.DeleteAsync(SelectedRecipe.Id!);
+                Recipes.Remove(SelectedRecipe);
+                SelectedRecipe = null;
+            }
+        }
+
         private void OnShowRecipe(Recipe recipe)
         {
             ViewRecipe = recipe;
@@ -212,6 +200,7 @@ public class MainWindowViewModel : ViewModelBase
         {
             IsViewDialogOpen = false;
         }
-}
+    }
+
 
     
