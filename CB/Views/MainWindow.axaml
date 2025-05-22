@@ -130,8 +130,8 @@
                 Background="#80000080"
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch"
-                ZIndex="98">
-            <Border Width="400"
+                ZIndex="198">
+            <Border Width="800"
                     Background="White"
                     CornerRadius="10"
                     Padding="20"

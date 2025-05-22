@@ -1,34 +1,37 @@
+using Serilog;
+using Serilog.Events;
 using System;
-using System.IO;
-using System.Threading.Tasks;
 
 namespace CB.Services;
 
     public static class LogService
     {
-        private static readonly string LogFilePath = "db_actions.log";
-        private static readonly object _lock = new();
-
-        public static async Task LogAsync(string message)
+        private static bool _initialized = false;
+        public static void Init()
         {
-            try
-            {
-                var line = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} | {message}";
-                // Лочим чтобы избежать одновременной записи из разных потоков
-                lock (_lock)
-                {
-                    File.AppendAllText(LogFilePath, line + Environment.NewLine);
-                }
-            }
-            catch { /* Игнорировать ошибки логирования */ }
+            if (_initialized) return;
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .WriteTo.File(
+                    new Serilog.Formatting.Compact.CompactJsonFormatter(),
+                    "db_actions.serilog.json",
+                    rollingInterval: RollingInterval.Day)
+                .CreateLogger();
+            _initialized = true;
         }
 
-        public static Task LogDbActionAsync(string action, string recipeId, string? title = null)
-            => LogAsync($"{action} | Id={recipeId} | Title={title}");
+        public static void LogDbAction(string action, string? recipeId = null, string? title = null)
+        {
+            Log.Information("DB Action {@Action}", new { action, recipeId, title, timestamp = DateTime.UtcNow });
+        }
 
-        public static Task LogDbErrorAsync(string method, Exception ex)
-            => LogAsync($"ERROR in {method} | {ex.GetType().Name}: {ex.Message}");
+        public static void LogDbError(string method, Exception ex)
+        {
+            Log.Error(ex, "DB Error in {Method}", method);
+        }
 
-        public static Task LogDbConnectionAsync(string connectionString)
-            => LogAsync($"DB CONNECTION | {connectionString}");
+        public static void LogDbConnection(string connectionString)
+        {
+            Log.Information("DB Connection: {ConnectionString}", connectionString);
+        }
     }

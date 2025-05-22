@@ -13,15 +13,15 @@ public class MongoRecipeService
         {
             try
             {
+                LogService.Init();
                 var client = new MongoClient(connectionString);
                 var database = client.GetDatabase(dbName);
                 _recipes = database.GetCollection<Recipe>("recipes");
-                // Логируем подключение
-                LogService.LogDbConnectionAsync(connectionString).Wait();
+                LogService.LogDbConnection(connectionString);
             }
             catch (Exception ex)
             {
-                LogService.LogDbErrorAsync("MongoRecipeService.ctor", ex).Wait();
+                LogService.LogDbError("MongoRecipeService.ctor", ex);
                 throw;
             }
         }
@@ -30,11 +30,13 @@ public class MongoRecipeService
         {
             try
             {
-                return await _recipes.Find(_ => true).ToListAsync();
+                var list = await _recipes.Find(_ => true).ToListAsync();
+                LogService.LogDbAction("GetAll");
+                return list;
             }
             catch (Exception ex)
             {
-                await LogService.LogDbErrorAsync("GetAllAsync", ex);
+                LogService.LogDbError("GetAllAsync", ex);
                 throw;
             }
         }
@@ -44,11 +46,11 @@ public class MongoRecipeService
             try
             {
                 await _recipes.InsertOneAsync(recipe);
-                await LogService.LogDbActionAsync("Add", recipe.Id ?? "null", recipe.Title);
+                LogService.LogDbAction("Add", recipe.Id, recipe.Title);
             }
             catch (Exception ex)
             {
-                await LogService.LogDbErrorAsync("AddAsync", ex);
+                LogService.LogDbError("AddAsync", ex);
                 throw;
             }
         }
@@ -58,11 +60,11 @@ public class MongoRecipeService
             try
             {
                 await _recipes.ReplaceOneAsync(r => r.Id == id, recipe);
-                await LogService.LogDbActionAsync("Update", id, recipe.Title);
+                LogService.LogDbAction("Update", id, recipe.Title);
             }
             catch (Exception ex)
             {
-                await LogService.LogDbErrorAsync("UpdateAsync", ex);
+                LogService.LogDbError("UpdateAsync", ex);
                 throw;
             }
         }
@@ -74,11 +76,11 @@ public class MongoRecipeService
                 var recipe = await _recipes.Find(r => r.Id == id).FirstOrDefaultAsync();
                 string? title = recipe?.Title;
                 await _recipes.DeleteOneAsync(r => r.Id == id);
-                await LogService.LogDbActionAsync("Delete", id, title);
+                LogService.LogDbAction("Delete", id, title);
             }
             catch (Exception ex)
             {
-                await LogService.LogDbErrorAsync("DeleteAsync", ex);
+                LogService.LogDbError("DeleteAsync", ex);
                 throw;
             }
         }
