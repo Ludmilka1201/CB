@@ -36,6 +36,7 @@
 
         <!-- Главная область -->
         <StackPanel Grid.Column="1" Margin="14" Spacing="10">
+            <Grid PointerPressed="EmptyArea_PointerPressed" Background="Transparent" Height="200">
             <ListBox ItemsSource="{Binding FilteredRecipes}"
                      SelectedItem="{Binding SelectedRecipe}"
                      Height="200"
@@ -49,7 +50,7 @@
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
-
+            </Grid>
             <StackPanel Orientation="Horizontal" Spacing="8">
                 <Button Content="Добавить рецепт" Command="{Binding AddRecipeCommand}"/>
                 <Button Content="Редактировать" Command="{Binding EditRecipeCommand}"/>

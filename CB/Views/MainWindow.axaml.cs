@@ -21,4 +21,13 @@ public partial class MainWindow : Window
         if (sender is ListBox lb && lb.SelectedItem is Recipe recipe && DataContext is MainWindowViewModel vm)
             vm.ShowRecipeCommand.Execute(recipe).Subscribe();
     }
+    
+    private void EmptyArea_PointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+    {
+        // Проверяем, что кликнули именно по пустому месту (например, по Border)
+        if (DataContext is CB.ViewModels.MainWindowViewModel vm)
+        {
+            vm.SelectedRecipe = null;
+        }
+    }
 }
