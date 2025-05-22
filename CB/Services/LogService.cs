@@ -1,22 +1,29 @@
-using Serilog;
-using Serilog.Events;
 using System;
+using System.IO;
+using Microsoft.Extensions.Configuration;
+using Serilog;
 
 namespace CB.Services;
 
     public static class LogService
     {
-        private static bool _initialized = false;
+        private static bool _initialized;
+
         public static void Init()
         {
             if (_initialized) return;
+
+            // Загрузка конфигурации из appsettings.json
+            var config = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())  // устанавливаем рабочий каталог
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)  // считываем файл
+                .Build();
+
+            // Применение конфигурации Serilog
             Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Debug()
-                .WriteTo.File(
-                    new Serilog.Formatting.Compact.CompactJsonFormatter(),
-                    "db_actions.serilog.json",
-                    rollingInterval: RollingInterval.Day)
+                .ReadFrom.Configuration(config)
                 .CreateLogger();
+
             _initialized = true;
         }
 
