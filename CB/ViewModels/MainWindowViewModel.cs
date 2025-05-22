@@ -138,6 +138,7 @@ public class MainWindowViewModel : ViewModelBase
 
         private void OnAddRecipe()
         {
+            SelectedRecipe = null;
             EditViewModel = new RecipeEditViewModel();
             IsEditDialogOpen = true;
         }
@@ -153,25 +154,26 @@ public class MainWindowViewModel : ViewModelBase
 
         private async Task OnSaveRecipeAsync()
         {
-            if (EditViewModel != null)
+            if (EditViewModel == null) return;
+
+            var newRecipe = EditViewModel.ToRecipe();
+
+            if (SelectedRecipe != null && Recipes.Contains(SelectedRecipe))
             {
-                var newRecipe = EditViewModel.ToRecipe();
-                if (SelectedRecipe != null && Recipes.Contains(SelectedRecipe))
-                {
-                    newRecipe.Id = SelectedRecipe.Id;
-                    // Обновление в базе
-                    await _dbService.UpdateAsync(newRecipe.Id!, newRecipe);
-                    // Обновление в списке
-                    int idx = Recipes.IndexOf(SelectedRecipe);
-                    Recipes[idx] = newRecipe;
-                }
-                else
-                {
-                    await _dbService.AddAsync(newRecipe);
-                    Recipes.Add(newRecipe);
-                }
-                SelectedRecipe = newRecipe;
+                // редактирование
+                newRecipe.Id = SelectedRecipe.Id;
+                await _dbService.UpdateAsync(newRecipe.Id!, newRecipe);
+                int idx = Recipes.IndexOf(SelectedRecipe);
+                Recipes[idx] = newRecipe;
             }
+            else
+            {
+                // добавление
+                await _dbService.AddAsync(newRecipe);
+                Recipes.Add(newRecipe);
+            }
+
+            SelectedRecipe = newRecipe;
             IsEditDialogOpen = false;
         }
 

@@ -37,10 +37,10 @@
         <!-- Главная область -->
         <StackPanel Grid.Column="1" Margin="14" Spacing="10">
             <Grid PointerPressed="EmptyArea_PointerPressed" Background="Transparent" Height="200">
-            <ListBox ItemsSource="{Binding FilteredRecipes}"
-                     SelectedItem="{Binding SelectedRecipe}"
-                     Height="200"
-                     DoubleTapped="ListBox_OnDoubleTapped">
+                <ListBox ItemsSource="{Binding FilteredRecipes}"
+                         SelectedItem="{Binding SelectedRecipe}"
+                         Height="200"
+                         DoubleTapped="ListBox_OnDoubleTapped">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <StackPanel>
