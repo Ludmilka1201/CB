@@ -40,6 +40,7 @@ namespace CB.ViewModels;
 
         public ReactiveCommand<Unit, Unit> AddIngredientCommand { get; }
 
+        //Методы для добавления ингредиентов и удаления
         private void AddIngredient()
         {
             Ingredients.Add(new IngredientViewModel(new Ingredient(), RemoveIngredient));

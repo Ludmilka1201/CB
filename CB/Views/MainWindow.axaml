@@ -38,8 +38,8 @@
         <!-- Главная область -->
         <Grid Grid.Column="1" Margin="14">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/> <!-- Строка для кнопок -->
-                <RowDefinition Height="*"/>    <!-- Строка для ListBox -->
+                <RowDefinition Height="Auto"/> 
+                <RowDefinition Height="*"/>    
             </Grid.RowDefinitions>
             
             <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="10,10,10,10">
@@ -88,7 +88,7 @@
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,2">
-                                    <TextBox Width="100" Watermark="Название" Text="{Binding Name, Mode=TwoWay}"/>
+                                    <TextBox Width="300" Watermark="Название" Text="{Binding Name, Mode=TwoWay}"/>
                                     <TextBox Width="60" Watermark="Кол-во" Text="{Binding Quantity, Mode=TwoWay}"/>
                                     <TextBox Width="60" Watermark="Ед." Text="{Binding Unit, Mode=TwoWay}"/>
                                     <Button Content="-" Command="{Binding RemoveCommand}"/>
@@ -122,14 +122,14 @@
                     VerticalAlignment="Center">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                 <StackPanel>
-                    <TextBlock Text="Рецепт" FontWeight="Bold" FontSize="18" Margin="0,0,0,10"/>
-                    <TextBlock Text="Название:" FontWeight="Bold"/>
+                    <TextBlock Text="Рецепт" FontWeight="Bold" FontSize="18" Margin="5,5,5,10"/>
+                    <TextBlock Text="Название:" FontWeight="Bold" Margin="5,5,5,5"/>
                     <TextBlock Text="{Binding ViewRecipe.Title}"/>
-                    <TextBlock Text="Категория:" FontWeight="Bold"/>
+                    <TextBlock Text="Категория:" FontWeight="Bold" Margin="5,5,5,5"/>
                     <TextBlock Text="{Binding ViewRecipe.Category}"/>
-                    <TextBlock Text="Описание:" FontWeight="Bold" Margin="0,30,0,0"/>
+                    <TextBlock Text="Описание:" FontWeight="Bold" Margin="5,5,5,5"/>
                     <TextBlock TextWrapping="WrapWithOverflow" Width="500" Height="100" Text="{Binding ViewRecipe.Instructions}"/>
-                    <TextBlock Text="Ингредиенты:" FontWeight="Bold" Margin="0,5,0,0"/>
+                    <TextBlock Text="Ингредиенты:" FontWeight="Bold" Margin="5,5,5,5"/>
                     <ItemsControl ItemsSource="{Binding ViewRecipe.Ingredients}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>

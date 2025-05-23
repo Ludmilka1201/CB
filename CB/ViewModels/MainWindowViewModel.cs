@@ -128,6 +128,7 @@ public class MainWindowViewModel : ViewModelBase
             return new ReadOnlyObservableCollection<Recipe>(new ObservableCollection<Recipe>(filtered));
         }
 
+        //Метод для загрузки рецептов из базы
         public async Task LoadRecipesAsync()
         {
             var all = await _dbService.GetAllAsync();
@@ -136,13 +137,14 @@ public class MainWindowViewModel : ViewModelBase
                 Recipes.Add(r);
         }
 
+        //Метод для добавления рецепта
         private void OnAddRecipe()
         {
             SelectedRecipe = null;
             EditViewModel = new RecipeEditViewModel();
             IsEditDialogOpen = true;
         }
-
+        //Метод для редактирования рецепта
         private void OnEditRecipe()
         {
             if (SelectedRecipe != null)
@@ -151,7 +153,7 @@ public class MainWindowViewModel : ViewModelBase
                 IsEditDialogOpen = true;
             }
         }
-
+        //Метод для сохранения рецепта в базу
         private async Task OnSaveRecipeAsync()
         {
             if (EditViewModel == null) return;
@@ -177,11 +179,13 @@ public class MainWindowViewModel : ViewModelBase
             IsEditDialogOpen = false;
         }
 
+        //Метод для отмены редактирования
         private void OnCancelEdit()
         {
             IsEditDialogOpen = false;
         }
 
+        //Метод для удаления рецепта
         private async void OnDeleteRecipe()
         {
             if (SelectedRecipe != null)
@@ -191,13 +195,15 @@ public class MainWindowViewModel : ViewModelBase
                 SelectedRecipe = null;
             }
         }
-
+        
+        //Метод для просмотра рецепта
         private void OnShowRecipe(Recipe recipe)
         {
             ViewRecipe = recipe;
             IsViewDialogOpen = true;
         }
 
+        //Метод для закрытия окна просмотра рецепта
         private void CloseViewDialog()
         {
             IsViewDialogOpen = false;

@@ -9,6 +9,7 @@ public class MongoRecipeService
 {
     private readonly IMongoCollection<Recipe> _recipes;
 
+    // Constructor
     public MongoRecipeService(string connectionString = "mongodb://localhost:27017", string dbName = "recipesdb")
     {
         try
@@ -25,7 +26,8 @@ public class MongoRecipeService
             throw;
         }
     }
-
+    
+    //Метод получения всех рецептов из БД и логирование
     public async Task<List<Recipe>> GetAllAsync()
     {
         try
@@ -41,6 +43,7 @@ public class MongoRecipeService
         }
     }
 
+    //Метод добавления рецепта в БД и логирование
     public async Task AddAsync(Recipe recipe)
     {
         try
@@ -55,6 +58,7 @@ public class MongoRecipeService
         }
     }
 
+    //Метод обновления рецепта в БД и логирование
     public async Task UpdateAsync(string id, Recipe recipe)
     {
         try
@@ -69,6 +73,7 @@ public class MongoRecipeService
         }
     }
 
+    //Метод удаления рецепта из БД и логирование
     public async Task DeleteAsync(string id)
     {
         try

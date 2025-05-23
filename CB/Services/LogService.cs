@@ -9,6 +9,7 @@ namespace CB.Services;
     {
         private static bool _initialized;
 
+        // Инициализация Serilog
         public static void Init()
         {
             if (_initialized) return;
@@ -27,16 +28,19 @@ namespace CB.Services;
             _initialized = true;
         }
 
+        // Логирование действий с БД
         public static void LogDbAction(string action, string? recipeId = null, string? title = null)
         {
             Log.Information("DB Action {@Action}", new { action, recipeId, title, timestamp = DateTime.UtcNow });
         }
 
+        // Логирование ошибок БД
         public static void LogDbError(string method, Exception ex)
         {
             Log.Error(ex, "DB Error in {Method}", method);
         }
 
+        // Логирование подключения к БД
         public static void LogDbConnection(string connectionString)
         {
             Log.Information("DB Connection: {ConnectionString}", connectionString);
